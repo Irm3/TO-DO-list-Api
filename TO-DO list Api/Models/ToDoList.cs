@@ -1,10 +1,15 @@
-﻿namespace TO_DO_list_Api.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace TO_DO_list_Api.Models
 {
-    public class ToDoList
+    public partial class ToDoList
     {
-        private int TodoList_id { get; set; }
-        private string Name { get; set; } = null!;
-        private bool Status { get; set; }
-        public virtual User user { get; set; } = null!;
+        public string Name { get; set; } = null!;
+        public int TodoListId { get; set; }
+        public bool Status { get; set; }
+        public int FkUserId { get; set; }
+
+        public virtual User FkUser { get; set; } = null!;
     }
 }

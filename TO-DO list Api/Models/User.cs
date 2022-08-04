@@ -1,12 +1,20 @@
-﻿namespace TO_DO_list_Api.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace TO_DO_list_Api.Models
 {
-    public class User
+    public partial class User
     {
-        private int User_id { get; set; }
-        private string Email { get; set; } = null!;
-        private string Password { get; set; } = null!;
-        private string? Role { get; set; }
+        public User()
+        {
+            ToDoLists = new HashSet<ToDoList>();
+        }
 
+        public string Email { get; set; } = null!;
+        public string Password { get; set; } = null!;
+        public string Role { get; set; } = null!;
+        public int UserId { get; set; }
 
+        public virtual ICollection<ToDoList> ToDoLists { get; set; }
     }
 }
