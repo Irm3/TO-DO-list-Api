@@ -6,6 +6,8 @@ using TO_DO_list_Api.Database;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Primitives;
 using System.Security.Cryptography;
+using MimeKit;
+using MailKit.Net.Smtp;
 
 namespace TO_DO_list_Api.Controllers
 {
@@ -51,10 +53,10 @@ namespace TO_DO_list_Api.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("forgot_password/{email}")]
-        public IActionResult ForgotPassword(string email)
+        [HttpPost("forgot_password/{email1}")]
+        public IActionResult ForgotPassword(string email1)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+            var user = _context.Users.FirstOrDefault(u => u.Email == email1);
 
             if (user == null)
             {
@@ -64,6 +66,21 @@ namespace TO_DO_list_Api.Controllers
             user.ResetToken = CreateToken();
             user.ResetTokenExpiration = DateTime.Now.AddHours(2);
             _context.SaveChanges();
+
+            string email_from = "adolfo.welch31@ethereal.email"; // using ethereal website for testing email sending
+            string email_to = email1;
+
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(email_from));
+            email.To.Add(MailboxAddress.Parse(email1));
+            email.Subject = "Reset Password";
+            email.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = "Reset Token: " + user.ResetToken + ", API endpoint to reset password: http://localhost:5241/api/Main/reset_password," +
+                                                                             "enter in json: `Token`, new `Password` and `ConfirmPassword` " };
+            using var smtp = new SmtpClient();
+            smtp.Connect("smtp.ethereal.email", 587, MailKit.Security.SecureSocketOptions.StartTls); // using ethereal smtp
+            smtp.Authenticate("adolfo.welch31@ethereal.email", "GEeYQtacXajZRyNWXp");
+            smtp.Send(email);
+            smtp.Disconnect(true);
 
             return Ok();
         }
