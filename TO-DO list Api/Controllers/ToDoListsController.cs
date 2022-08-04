@@ -23,8 +23,8 @@ namespace TO_DO_list_Api.Controllers
             _context = context;
         }
 
-        // GET: api/ToDoLists
-        [HttpGet]
+        [Authorize(Roles = "role1")]
+        [HttpGet("GetAllUserTasks")]
         public async Task<ActionResult<IEnumerable<ToDoList>>> GetToDoLists()
         {
           if (_context.ToDoLists == null)
@@ -34,8 +34,22 @@ namespace TO_DO_list_Api.Controllers
             return await _context.ToDoLists.ToListAsync();
         }
 
-        // GET: api/ToDoLists/5
-        [HttpGet("{id}")]
+        [Authorize(Roles = "role2")]
+        [HttpGet("GetAllMyTasks")]
+        public async Task<ActionResult<IEnumerable<ToDoList>>> GetMyLists()
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email); // get email
+            var user = await _context.Users.FirstOrDefaultAsync(acc => acc.Email == email); // find logged in user
+
+            if (_context.ToDoLists == null)
+            {
+                return NotFound();
+            }
+            return await _context.ToDoLists.Where(a => a.FkUserId == user.UserId).ToListAsync();
+        }
+
+        [Authorize(Roles = "role1")]
+        [HttpGet("Task/{id}")]
         public async Task<ActionResult<ToDoList>> GetToDoList(int id)
         {
           if (_context.ToDoLists == null)
@@ -52,9 +66,8 @@ namespace TO_DO_list_Api.Controllers
             return toDoList;
         }
 
-        // PUT: api/ToDoLists/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+        [Authorize(Roles = "role2")]
+        [HttpPut("EditMyTask/{id}")]
         public async Task<IActionResult> PutToDoList(int id, ToDoList toDoList)
         {
             if (id != toDoList.TodoListId)
@@ -83,7 +96,7 @@ namespace TO_DO_list_Api.Controllers
             return NoContent();
         }
 
-        [Authorize]
+        [Authorize(Roles = "role2")]
         [HttpPost("AddTask")]
         public async Task<ActionResult<ToDoList>> PostToDoList([FromBody] ListTask toDoList)
         {
