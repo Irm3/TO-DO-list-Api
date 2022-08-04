@@ -128,8 +128,8 @@ namespace TO_DO_list_Api.Controllers
             return CreatedAtAction("GetToDoList", new { id = task.TodoListId }, task);
         }
 
-        // DELETE: api/ToDoLists/5
-        [HttpDelete("{id}")]
+        [Authorize(Roles = "role1")]
+        [HttpDelete("DeleteTask/{id}")]
         public async Task<IActionResult> DeleteToDoList(int id)
         {
             if (_context.ToDoLists == null)
@@ -140,6 +140,38 @@ namespace TO_DO_list_Api.Controllers
             if (toDoList == null)
             {
                 return NotFound();
+            }
+
+            _context.ToDoLists.Remove(toDoList);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [Authorize(Roles = "role2")]
+        [HttpDelete("DeleteMyTask/{id}")]
+        public async Task<IActionResult> DeleteMyDoList(int id)
+        {
+
+            var email = User.FindFirstValue(ClaimTypes.Email); // get email
+            var user = await _context.Users.FirstOrDefaultAsync(acc => acc.Email == email); // find logged in user
+
+
+            if (_context.ToDoLists == null)
+            {
+                return NotFound();
+            }
+
+            var toDoList = await _context.ToDoLists.FindAsync(id);
+
+            if (toDoList == null)
+            {
+                return NotFound();
+            }
+
+            if (user.UserId != toDoList.FkUserId)
+            {
+                return Unauthorized();
             }
 
             _context.ToDoLists.Remove(toDoList);
