@@ -22,7 +22,7 @@ namespace TO_DO_list_Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public IActionResult Login(Login user)
+        public IActionResult Login([FromBody]Login user)
         {
             var token = _jwtAuthenticationManager.Authenticate(user.Email, user.Password);
 
@@ -32,6 +32,30 @@ namespace TO_DO_list_Api.Controllers
             }
 
             return Ok(new { token = token, email = user.Email });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] Login userRegister)
+        {
+            // check email
+            if (_context.Users.FirstOrDefault(acc => acc.Email == userRegister.Email) != null)
+            {
+                return NotFound(new { message = "Email already exists." });
+            }
+
+            var user = new User
+            {
+                Email = userRegister.Email,
+                Password = userRegister.Password,
+                Role = "role2" // role1 = admin, role2 = user
+            
+            };
+
+            _context.Users.Add(user);
+            _context.SaveChanges();
+
+            return Created("Success!", user);
         }
     }
 }
