@@ -63,11 +63,17 @@ namespace TO_DO_list_Api.Controllers
                 return BadRequest();
             }
 
+            var builder = new ConfigurationBuilder()
+                    .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                    .AddJsonFile("appsettings.json");
+            IConfiguration configuration = builder.Build();
+            string server = configuration.GetConnectionString("EmailServer");
+            string email_from = configuration.GetConnectionString("MainEmail"); // using ethereal website for testing email sending
+
             user.ResetToken = CreateToken();
             user.ResetTokenExpiration = DateTime.Now.AddHours(2);
             _context.SaveChanges();
 
-            string email_from = "adolfo.welch31@ethereal.email"; // using ethereal website for testing email sending
             string email_to = email1;
 
             var email = new MimeMessage();
@@ -77,7 +83,7 @@ namespace TO_DO_list_Api.Controllers
             email.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = "Reset Token: " + user.ResetToken + ", API endpoint to reset password: http://localhost:5241/api/Main/reset_password," +
                                                                              "enter in json: `Token`, new `Password` and `ConfirmPassword` " };
             using var smtp = new SmtpClient();
-            smtp.Connect("smtp.ethereal.email", 587, MailKit.Security.SecureSocketOptions.StartTls); // using ethereal smtp
+            smtp.Connect(server, 587, MailKit.Security.SecureSocketOptions.StartTls); // using ethereal smtp
             smtp.Authenticate("adolfo.welch31@ethereal.email", "GEeYQtacXajZRyNWXp");
             smtp.Send(email);
             smtp.Disconnect(true);
