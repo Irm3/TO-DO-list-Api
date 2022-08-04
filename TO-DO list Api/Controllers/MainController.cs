@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TO_DO_list_Api.Models;
+using TO_DO_list_Api.JWT;
+using TO_DO_list_Api.Database;
 
 namespace TO_DO_list_Api.Controllers
 {
@@ -7,7 +10,7 @@ namespace TO_DO_list_Api.Controllers
     [ApiController]
     public class MainController : ControllerBase
     {
-
+        private readonly ToDoListDBContext _context;
 
     }
 }
