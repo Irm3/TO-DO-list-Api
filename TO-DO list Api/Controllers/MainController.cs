@@ -5,6 +5,7 @@ using TO_DO_list_Api.JWT;
 using TO_DO_list_Api.Database;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Primitives;
+using System.Security.Cryptography;
 
 namespace TO_DO_list_Api.Controllers
 {
@@ -33,6 +34,57 @@ namespace TO_DO_list_Api.Controllers
             }
 
             return Ok(new { token = token, email = user.Email });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("verify")]
+        public IActionResult Verify(string emailToken)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.ResetToken == emailToken);
+
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("forgot_password/{email}")]
+        public IActionResult ForgotPassword(string email)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            user.ResetToken = CreateToken();
+            user.ResetTokenExpiration = DateTime.Now.AddHours(2);
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("reset_password")]
+        public IActionResult ResetPassword(ResetPassword request)
+        {
+            var user = _context.Users.FirstOrDefault(u => u.ResetToken == request.Token);
+
+            if (user == null || user.ResetTokenExpiration < DateTime.Now)
+            {
+                return BadRequest("Bad token");
+            }
+            user.Password = request.Password;
+            user.ResetToken = null;
+            user.ResetTokenExpiration = null;
+
+            _context.SaveChanges();
+
+            return Ok();
         }
 
         [AllowAnonymous]
@@ -81,6 +133,11 @@ namespace TO_DO_list_Api.Controllers
         {
             Request.Headers.TryGetValue("Authorization", out StringValues authHeader);
             return Ok(new { token = authHeader });
+        }
+
+        private string CreateToken()
+        {
+            return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
         }
     }
 }

@@ -74,6 +74,16 @@ namespace TO_DO_list_Api.Database
                 entity.Property(e => e.Role)
                     .HasMaxLength(5)
                     .IsUnicode(false);
+
+                entity.Property(e => e.ResetToken)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ResetTokenExpiration)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'NULL'");
+
+
             });
 
             OnModelCreatingPartial(modelBuilder);
