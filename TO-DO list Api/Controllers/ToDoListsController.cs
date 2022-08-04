@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -81,19 +83,26 @@ namespace TO_DO_list_Api.Controllers
             return NoContent();
         }
 
-        // POST: api/ToDoLists
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<ToDoList>> PostToDoList(ToDoList toDoList)
+        [Authorize]
+        [HttpPost("AddTask")]
+        public async Task<ActionResult<ToDoList>> PostToDoList([FromBody] ListTask toDoList)
         {
-          if (_context.ToDoLists == null)
-          {
-              return Problem("Entity set 'ToDoListDBContext.ToDoLists'  is null.");
-          }
-            _context.ToDoLists.Add(toDoList);
+
+            var email = User.FindFirstValue(ClaimTypes.Email); // get email
+            var user = await _context.Users.FirstOrDefaultAsync(acc => acc.Email == email); // find logged in user
+
+            var task = new ToDoList
+            {
+                Name = toDoList.Name,
+                Status = toDoList.Status,
+                FkUserId = user.UserId,
+                FkUser = user
+            };
+
+            _context.ToDoLists.Add(task);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetToDoList", new { id = toDoList.TodoListId }, toDoList);
+            return CreatedAtAction("GetToDoList", new { id = task.TodoListId }, task);
         }
 
         // DELETE: api/ToDoLists/5
