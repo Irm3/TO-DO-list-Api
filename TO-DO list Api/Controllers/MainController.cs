@@ -80,8 +80,8 @@ namespace TO_DO_list_Api.Controllers
             email.From.Add(MailboxAddress.Parse(email_from));
             email.To.Add(MailboxAddress.Parse(email1));
             email.Subject = "Reset Password";
-            email.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = "Reset Token: " + user.ResetToken + ", API endpoint to reset password: http://localhost:5241/api/Main/reset_password," +
-                                                                             "enter in json: `Token`, new `Password` and `ConfirmPassword` " };
+            email.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = "API endpoint to reset password: http://localhost:5241/api/Main/reset_password/" + user.ResetToken +
+                                                                             "    enter in json: new `Password` and `ConfirmPassword` " };
             using var smtp = new SmtpClient();
             smtp.Connect(server, 587, MailKit.Security.SecureSocketOptions.StartTls); // using ethereal smtp
             smtp.Authenticate("adolfo.welch31@ethereal.email", "GEeYQtacXajZRyNWXp");
@@ -92,10 +92,10 @@ namespace TO_DO_list_Api.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("reset_password")]
-        public IActionResult ResetPassword(ResetPassword request)
+        [HttpPost("reset_password/{resetToken}")]
+        public IActionResult ResetPassword(ResetPassword request, string resetToken)
         {
-            var user = _context.Users.FirstOrDefault(u => u.ResetToken == request.Token);
+            var user = _context.Users.FirstOrDefault(u => u.ResetToken == resetToken);
 
             if (user == null || user.ResetTokenExpiration < DateTime.Now)
             {
