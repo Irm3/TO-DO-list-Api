@@ -32,7 +32,7 @@ namespace TO_DO_list_Api.Database
                 IConfiguration configuration = builder.Build();
                 string connectionString = configuration.GetConnectionString("DefaultConnection");
 
-                optionsBuilder.UseSqlServer();
+                optionsBuilder.UseSqlServer(connectionString);
             }
         }
 
