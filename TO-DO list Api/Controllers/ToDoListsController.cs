@@ -68,14 +68,24 @@ namespace TO_DO_list_Api.Controllers
 
         [Authorize(Roles = "role2")]
         [HttpPut("EditMyTask/{id}")]
-        public async Task<IActionResult> PutToDoList(int id, ToDoList toDoList)
+        public async Task<IActionResult> PutToDoList(int id, ListTask toDoList)
         {
-            if (id != toDoList.TodoListId)
+            var email = User.FindFirstValue(ClaimTypes.Email); // get email
+            var user = await _context.Users.FirstOrDefaultAsync(acc => acc.Email == email); // find logged in user
+            var task = await _context.ToDoLists.FirstOrDefaultAsync(tsk => tsk.TodoListId == id); // find task by id
+
+            if(task == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(toDoList).State = EntityState.Modified;
+            if(user.UserId != task.FkUserId)
+            {
+                return Unauthorized();
+            }
+
+            task.Name = toDoList.Name;
+            task.Status = toDoList.Status;
 
             try
             {
